@@ -123,6 +123,11 @@ lib.bpf_attach_perf_event.argtype = [ct.c_int, ct.c_uint, ct.c_uint, ct.c_ulongl
 lib.bpf_close_perf_event_fd.restype = ct.c_int
 lib.bpf_close_perf_event_fd.argtype = [ct.c_int]
 
+lib.bpf_obj_pin.restype = ct.c_int
+lib.bpf_obj_pin.argtype = [ct.c_int, ct.c_char_p]
+lib.bpf_obj_get.restype = ct.c_int
+lib.bpf_obj_get.argtype = [ct.c_char_p]
+
 # bcc symbol helpers
 class bcc_symbol(ct.Structure):
     _fields_ = [

@@ -1122,6 +1122,48 @@ class BPF(object):
             print(line)
             sys.stdout.flush()
 
+    def pin_func_to_fs(self, func_name, path):
+        """pin_func_to_fs(self, func_name, path)
+        
+        Pins an already-loaded function to a path in a BPF filesystem. The BPF
+        function becomes persistent, and will exist until the file has been
+        unlinked and any file descriptors from any processes are closed.
+        """
+        func_name = _assert_is_bytes(func_name)
+        path = _assert_is_bytes(path)
+        try:
+            func = self.funcs[func_name]
+        except KeyError:
+            raise Exception("Unknown program %s" % func_name)
+        if not lib.bpf_function_start(self.module, func_name):
+            raise Exception("Unknown program %s" % func_name)
+        if lib.bpf_obj_pin(func.fd, path) < 0:
+            if ct.get_errno() == errno.EEXIST:
+                raise Exception("Cannot pin %s to path %s, already exists" %
+                            (func_name, path))
+            raise Exception("Failed to pin program %s to filesystem" %
+                            func_name)
+
+    def pin_table_to_fs(self, table_name, path):
+        """pin_table_to_fs(self, table_name, path)
+        
+        Pins an already-loaded table to a path in a BPF filesystem. The BPF
+        table becomes persistent, and will exist until the file has been
+        unlinked and any file descriptors from any processes are closed.
+        """
+        table_name = _assert_is_bytes(table_name)
+        path = _assert_is_bytes(path)
+        try:
+            table = self.tables[table_name]
+        except KeyError:
+            raise Exception("Unknown table %s" % table_name)
+        if lib.bpf_obj_pin(table.map_fd, path) < 0:
+            if ct.get_errno() == errno.EEXIST:
+                raise Exception("Cannot pin %s to path %s, already exists" %
+                             (func_name, path))
+            raise Exception("Failed to pin program %s to filesystem" %
+                            table_name)
+
     @staticmethod
     def _sym_cache(pid):
         """_sym_cache(pid)
